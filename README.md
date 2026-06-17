@@ -69,44 +69,6 @@ Recommended local services and configuration:
 - Clerk or Firebase Auth credentials.
 - Wallet provider credentials only after the core stamp/reward flow works.
 
-## Repository Shape
-
-Expected backend repository layout:
-
-```text
-Loyal Tap API/
-  src/
-    main/
-    test/
-  pom.xml
-  Dockerfile
-  README.md
-  AGENTS.md
-```
-
-Expected Java package layout:
-
-```text
-com.loyaltap
-  auth
-  user
-  business
-  employee
-  membership
-  nfc
-  stamprequest
-  reward
-  rewardredemption
-  wallet
-    google
-    apple
-  common
-    error
-    validation
-    security
-    auditing
-```
-
 ## High-Level Architecture
 
 ```text
