@@ -22,97 +22,29 @@ QR code = redemption proof token
 Wallet pass = display/sync surface
 ```
 
-## Technical Direction
+## Naming
 
-- Use Java 21 and Spring Boot 3 for the backend.
-- Use PostgreSQL as the primary database.
-- Use Liquibase for schema migrations.
-- Use external authentication, preferably Clerk for MVP or Firebase Auth as an
-  alternative.
-- Do not implement local password storage unless explicitly requested.
-- Add Google Wallet integration before Apple Wallet integration.
-- Treat wallet sync as asynchronous background work.
+Use camel format for naming files, functions, variables and etc. ex. camelFormat
 
-## Domain Rules
+## Project Structure
 
-- A user can have one membership per business.
-- `memberships.points_balance` is the user's total points.
-- `memberships.reserved_points` is temporarily locked when the user reserves a
-  reward and receives a QR code.
-- Available points are `points_balance - reserved_points`.
-- NFC tag taps create `stamp_requests`; they must not add points directly.
-- Employee approval is required before a stamp request changes membership
-  points.
-- Reward reservation must lock membership and reward rows before checking points
-  or stock.
-- Unlimited rewards have `rewards.stock_quantity = null`.
-- Limited rewards reserve one stock unit by increasing `rewards.stock_reserved`.
-- Reward redemption must be completed through a valid, unexpired QR
-  `redemption_code` accepted by an employee of the same business.
-- Wallet passes mirror backend data and must not be treated as authoritative.
+For each db table create separate folder named after the table. In the folder it should have different folder for model, dto, mapper, repository, service, utils, controller and other folders if needed.
 
-## Expected Modules
+## Methods
 
-Keep packages organized around business capabilities:
+Each method should be properly structured. Create helper methods / classes if needed. Helper methods are created when the code gets too compplicated of there is biler code. 
 
-```text
-com.loyaltap
-  auth
-  user
-  business
-  employee
-  membership
-  nfc
-  stamprequest
-  reward
-  rewardredemption
-  wallet
-    google
-    apple
-  common
-    error
-    validation
-    security
-    auditing
-```
+### Service methods
 
-## Implementation Guidelines
+In the service methods follow CRUD principles for naming, order and general implementation of code.
 
-- Keep controller logic thin.
-- Prefer service-layer transactions for stamp approval, reward reservation,
-  reward acceptance, and reservation expiry.
-- Use database row locking when reserving or redeeming rewards.
-- Validate all IDs, roles, ownership, and state transitions before mutating
-  data.
-- Store external provider IDs, wallet object IDs, and pass serial numbers
-  separately from internal UUIDs.
-- Use internal UUIDs as primary keys; do not use public NFC tag codes as primary
-  keys.
-- Generate random opaque `redemption_code` values for QR redemption.
-- Queue wallet updates after core transactions commit.
-- A wallet API failure should create or update a retryable job, not roll back a
-  successful point approval or reward redemption.
-- Add integration tests for transaction-heavy flows.
+### Repository methods
 
-## Security Checklist
+Be careful of N + 1 problem that repo methods may have, so to prevent that use custom queries.
 
-- Verify external auth tokens before initializing or loading users.
-- Enforce role checks for employee, manager, owner, and admin APIs.
-- Only employees of the same business can approve stamp requests or accept QR
-  redemptions.
-- QR codes should expire quickly, usually after 2-5 minutes.
-- Allow only one active `RESERVED` redemption per membership/business or per
-  membership/reward.
-- Run a scheduled expiry job to release reserved points and stock.
-- Never trust client-provided balances, reserved points, reward stock, redemption
-  status, or wallet state.
+## Javadocs
 
-## Documentation
+Use Javadocs for methods, variables or anything that is not 100% understandable by jsut reading the name or implementation of code.
 
-- Keep `README.md` practical and README-like: setup, architecture decisions,
-  endpoint map, data model, workflows, and implementation checklist.
-- When adding endpoints, update the API surface in `README.md`.
-- When adding or changing tables, update the data model and database diagram
-  link in `README.md`.
-- Do not paste the DBML/dbdiagram source into `README.md`; link to the shared
-  dbdiagram.io diagram instead.
+
+
