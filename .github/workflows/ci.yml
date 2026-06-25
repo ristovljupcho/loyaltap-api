@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify build and startup
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: loyaltap
+          POSTGRES_USER: loyaltap
+          POSTGRES_PASSWORD: loyaltap
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U loyaltap -d loyaltap"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/loyaltap
+      SPRING_DATASOURCE_USERNAME: loyaltap
+      SPRING_DATASOURCE_PASSWORD: loyaltap
+      SPRING_LIQUIBASE_URL: jdbc:postgresql://localhost:5432/loyaltap
+      SPRING_LIQUIBASE_USER: loyaltap
+      SPRING_LIQUIBASE_PASSWORD: loyaltap
+      SPRING_JPA_OPEN_IN_VIEW: "false"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
+
+      - name: Verify and package
+        run: ./mvnw --batch-mode --no-transfer-progress verify
+
+      - name: Start application and verify health
+        shell: bash
+        run: |
+          java -jar target/loyaltap-api-0.0.1-SNAPSHOT.jar > application.log 2>&1 &
+          echo "$!" > application.pid
+
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error \
+              http://localhost:8080/actuator/health > health.json; then
+              cat health.json
+              exit 0
+            fi
+
+            if ! kill -0 "$(cat application.pid)" 2>/dev/null; then
+              echo "Application stopped before becoming healthy."
+              cat application.log
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          echo "Application did not become healthy within 60 seconds."
+          cat application.log
+          exit 1
+
+      - name: Print application log on failure
+        if: failure()
+        run: cat application.log 2>/dev/null || true
+
+      - name: Stop application
+        if: always()
+        shell: bash
+        run: |
+          if [ -f application.pid ]; then
+            kill "$(cat application.pid)" 2>/dev/null || true
+          fi

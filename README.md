@@ -69,6 +69,30 @@ Recommended local services and configuration:
 - Clerk or Firebase Auth credentials.
 - Wallet provider credentials only after the core stamp/reward flow works.
 
+## Continuous Integration
+
+The GitHub Actions workflow in `.github/workflows/ci.yml` runs for pull requests
+and pushes to `main`. It:
+
+- Compiles the project and runs all tests with `./mvnw verify`.
+- Starts a PostgreSQL service container.
+- Packages and starts the application with Java 21.
+- Requires the application to report healthy at `/actuator/health`.
+
+To prevent broken code from reaching `main`, configure a GitHub branch ruleset:
+
+1. Open **Settings → Rules → Rulesets** in the GitHub repository.
+2. Create a branch ruleset targeting the `main` branch.
+3. Enable **Require a pull request before merging**.
+4. Enable **Require status checks to pass**.
+5. Add the required status check named `Verify build and startup`.
+6. Block force pushes and branch deletion.
+7. Disable bypass permissions for contributors who should follow the rule.
+
+The workflow reports failures on any branch where it runs. The branch ruleset
+is what prevents direct pushes or pull request merges into `main` when the
+required check fails.
+
 ## High-Level Architecture
 
 ```text
