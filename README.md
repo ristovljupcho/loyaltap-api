@@ -43,28 +43,58 @@ MVP capabilities:
 
 | Layer | Choice | Why |
 | --- | --- | --- |
-| Backend | Java 21 + Spring Boot 3 | Strong transactional APIs and long-term maintainability |
+| Backend | Java 25 + Spring Boot 3.5.16 | Strong transactional APIs and long-term maintainability |
 | Database | PostgreSQL | Relational constraints, transactions, row locking, and audit-friendly state |
 | Migrations | Liquibase | Repeatable database changes |
 | Auth | Clerk first, Firebase Auth as an alternative | Avoid custom password/session logic |
 | Mobile app | React Native / Expo | Good fit for NFC, QR, and wallet flows |
-| Infrastructure | Docker + docker-compose | Simple local development |
+| Infrastructure | GitHub Actions CI + Docker-friendly PostgreSQL | Simple local development and repeatable verification |
 | Wallets | Google Wallet first, Apple Wallet later | Lower MVP complexity |
+
+## Current Project Versions
+
+| Component | Current Version |
+| --- | --- |
+| API artifact | `com.loyaltap:loyaltap-api:0.0.1-SNAPSHOT` |
+| Java | `25` |
+| Spring Boot parent | `3.5.16` |
+| Maven Wrapper | `3.3.4` |
+| Maven distribution | `3.9.16` |
+| CI PostgreSQL image | `postgres:17-alpine` |
 
 ## Local Development
 
-The Spring Boot project is not scaffolded yet. Once it exists, the expected
-developer flow is:
+The repository is scaffolded as a Spring Boot Maven project. Use the checked-in
+Maven wrapper so local builds match CI.
 
 ```bash
-docker compose up -d postgres
 ./mvnw spring-boot:run
 ./mvnw test
 ```
 
+On Windows PowerShell, use:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+.\mvnw.cmd test
+```
+
+Local application startup requires a PostgreSQL database and matching Spring
+datasource/Liquibase configuration. The CI workflow uses:
+
+```text
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/loyaltap
+SPRING_DATASOURCE_USERNAME=loyaltap
+SPRING_DATASOURCE_PASSWORD=loyaltap
+SPRING_LIQUIBASE_URL=jdbc:postgresql://localhost:5432/loyaltap
+SPRING_LIQUIBASE_USER=loyaltap
+SPRING_LIQUIBASE_PASSWORD=loyaltap
+SPRING_JPA_OPEN_IN_VIEW=false
+```
+
 Recommended local services and configuration:
 
-- PostgreSQL database.
+- PostgreSQL database, aligned with the CI `postgres:17-alpine` image where practical.
 - Liquibase migrations on application startup or CI.
 - Clerk or Firebase Auth credentials.
 - Wallet provider credentials only after the core stamp/reward flow works.
@@ -72,16 +102,17 @@ Recommended local services and configuration:
 ## Continuous Integration
 
 The GitHub Actions workflow in `.github/workflows/ci.yml` runs for pull requests
-and pushes to `main`. It:
+and pushes to `main`. It currently uses Java 25, Maven Wrapper 3.3.4 with Maven
+3.9.16, Spring Boot 3.5.16, and `postgres:17-alpine`. It:
 
 - Compiles the project and runs all tests with `./mvnw verify`.
 - Starts a PostgreSQL service container.
-- Packages and starts the application with Java 21.
+- Packages and starts the application with Java 25.
 - Requires the application to report healthy at `/actuator/health`.
 
 To prevent broken code from reaching `main`, configure a GitHub branch ruleset:
 
-1. Open **Settings → Rules → Rulesets** in the GitHub repository.
+1. Open **Settings -> Rules -> Rulesets** in the GitHub repository.
 2. Create a branch ruleset targeting the `main` branch.
 3. Enable **Require a pull request before merging**.
 4. Enable **Require status checks to pass**.
