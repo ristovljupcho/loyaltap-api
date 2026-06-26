@@ -44,7 +44,7 @@ MVP capabilities:
 | Layer | Choice | Why |
 | --- | --- | --- |
 | Backend | Java 25 + Spring Boot 3.5.16 | Strong transactional APIs and long-term maintainability |
-| Database | PostgreSQL | Relational constraints, transactions, row locking, and audit-friendly state |
+| Database | PostgreSQL, including Neon-hosted PostgreSQL | Relational constraints, transactions, row locking, and audit-friendly state |
 | Migrations | Liquibase | Repeatable database changes |
 | Auth | Clerk first, Firebase Auth as an alternative | Avoid custom password/session logic |
 | Mobile app | React Native / Expo | Good fit for NFC, QR, and wallet flows |
@@ -98,6 +98,46 @@ Recommended local services and configuration:
 - Liquibase migrations on application startup or CI.
 - Clerk or Firebase Auth credentials.
 - Wallet provider credentials only after the core stamp/reward flow works.
+
+## Neon Database
+
+The project includes a `neon` Spring profile for connecting to a Neon-hosted
+PostgreSQL database. Keep real connection strings and passwords in local or
+deployment environment variables only; do not commit `.env` files.
+
+1. Create or open a Neon project.
+2. In the Neon console, click **Connect** and select the branch, database, and role.
+3. Use the pooled hostname with `-pooler` for normal application traffic.
+4. Convert the Neon connection string to a JDBC URL for Spring:
+
+```text
+Neon URI:
+postgresql://<role>:<password>@<endpoint-id>-pooler.<region>.aws.neon.tech/<database>?sslmode=require&channel_binding=require
+
+Spring JDBC URL:
+jdbc:postgresql://<endpoint-id>-pooler.<region>.aws.neon.tech/<database>?sslmode=require&channelBinding=require
+```
+
+Set these environment variables:
+
+```text
+SPRING_PROFILES_ACTIVE=neon
+NEON_DATABASE_URL=jdbc:postgresql://<endpoint-id>-pooler.<region>.aws.neon.tech/<database>?sslmode=require&channelBinding=require
+NEON_DATABASE_USERNAME=<role>
+NEON_DATABASE_PASSWORD=<password>
+```
+
+For Liquibase migrations, a direct Neon connection is safer than PgBouncer
+transaction pooling. If needed, also set:
+
+```text
+NEON_MIGRATION_DATABASE_URL=jdbc:postgresql://<endpoint-id>.<region>.aws.neon.tech/<database>?sslmode=require&channelBinding=require
+NEON_MIGRATION_DATABASE_USERNAME=<role>
+NEON_MIGRATION_DATABASE_PASSWORD=<password>
+```
+
+Use `.env.example` as the local template, then create an untracked `.env` file
+with real Neon values.
 
 ## Continuous Integration
 
@@ -435,3 +475,6 @@ Mobile:
 - [Clerk Authenticated Backend Requests](https://clerk.com/docs/guides/development/making-requests)
 - [Firebase Authentication](https://firebase.google.com/docs/auth)
 - [Supabase Auth](https://supabase.com/docs/guides/auth)
+- [Neon Connect from any application](https://neon.com/docs/connect/connect-from-any-app)
+- [Neon Connection Pooling](https://neon.com/docs/connect/connection-pooling)
+- [PostgreSQL JDBC Connection Parameters](https://jdbc.postgresql.org/documentation/use/)
