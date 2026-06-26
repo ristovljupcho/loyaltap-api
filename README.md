@@ -118,10 +118,11 @@ Spring JDBC URL:
 jdbc:postgresql://<endpoint-id>-pooler.<region>.aws.neon.tech/<database>?sslmode=require&channelBinding=require
 ```
 
-Set these environment variables:
+For a local `.env` file, set these values. Spring Boot imports `.env` from the
+project root when the application starts:
 
 ```text
-SPRING_PROFILES_ACTIVE=neon
+spring.profiles.active=neon
 NEON_DATABASE_URL=jdbc:postgresql://<endpoint-id>-pooler.<region>.aws.neon.tech/<database>?sslmode=require&channelBinding=require
 NEON_DATABASE_USERNAME=<role>
 NEON_DATABASE_PASSWORD=<password>
@@ -137,7 +138,8 @@ NEON_MIGRATION_DATABASE_PASSWORD=<password>
 ```
 
 Use `.env.example` as the local template, then create an untracked `.env` file
-with real Neon values.
+with real Neon values. If you prefer IDE or deployment environment variables,
+use `SPRING_PROFILES_ACTIVE=neon` instead of `spring.profiles.active=neon`.
 
 ## Continuous Integration
 
