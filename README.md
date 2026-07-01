@@ -43,31 +43,128 @@ MVP capabilities:
 
 | Layer | Choice | Why |
 | --- | --- | --- |
-| Backend | Java 21 + Spring Boot 3 | Strong transactional APIs and long-term maintainability |
-| Database | PostgreSQL | Relational constraints, transactions, row locking, and audit-friendly state |
+| Backend | Java 25 + Spring Boot 3.5.16 | Strong transactional APIs and long-term maintainability |
+| Database | PostgreSQL, including Neon-hosted PostgreSQL | Relational constraints, transactions, row locking, and audit-friendly state |
 | Migrations | Liquibase | Repeatable database changes |
 | Auth | Clerk first, Firebase Auth as an alternative | Avoid custom password/session logic |
 | Mobile app | React Native / Expo | Good fit for NFC, QR, and wallet flows |
-| Infrastructure | Docker + docker-compose | Simple local development |
+| Infrastructure | GitHub Actions CI + Docker-friendly PostgreSQL | Simple local development and repeatable verification |
 | Wallets | Google Wallet first, Apple Wallet later | Lower MVP complexity |
+
+## Current Project Versions
+
+| Component | Current Version |
+| --- | --- |
+| API artifact | `com.loyaltap:loyaltap-api:0.0.1-SNAPSHOT` |
+| Java | `25` |
+| Spring Boot parent | `3.5.16` |
+| Maven Wrapper | `3.3.4` |
+| Maven distribution | `3.9.16` |
+| CI PostgreSQL image | `postgres:17-alpine` |
 
 ## Local Development
 
-The Spring Boot project is not scaffolded yet. Once it exists, the expected
-developer flow is:
+The repository is scaffolded as a Spring Boot Maven project. Use the checked-in
+Maven wrapper so local builds match CI.
 
 ```bash
-docker compose up -d postgres
 ./mvnw spring-boot:run
 ./mvnw test
 ```
 
+On Windows PowerShell, use:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+.\mvnw.cmd test
+```
+
+Local application startup requires a PostgreSQL database and matching Spring
+datasource/Liquibase configuration. The CI workflow uses:
+
+```text
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/loyaltap
+SPRING_DATASOURCE_USERNAME=loyaltap
+SPRING_DATASOURCE_PASSWORD=loyaltap
+SPRING_LIQUIBASE_URL=jdbc:postgresql://localhost:5432/loyaltap
+SPRING_LIQUIBASE_USER=loyaltap
+SPRING_LIQUIBASE_PASSWORD=loyaltap
+SPRING_JPA_OPEN_IN_VIEW=false
+```
+
 Recommended local services and configuration:
 
-- PostgreSQL database.
+- PostgreSQL database, aligned with the CI `postgres:17-alpine` image where practical.
 - Liquibase migrations on application startup or CI.
 - Clerk or Firebase Auth credentials.
 - Wallet provider credentials only after the core stamp/reward flow works.
+
+## Neon Database
+
+The project includes a `neon` Spring profile for connecting to a Neon-hosted
+PostgreSQL database. Keep real connection strings and passwords in local or
+deployment environment variables only; do not commit `.env` files.
+
+1. Create or open a Neon project.
+2. In the Neon console, click **Connect** and select the branch, database, and role.
+3. Use the pooled hostname with `-pooler` for normal application traffic.
+4. Convert the Neon connection string to a JDBC URL for Spring:
+
+```text
+Neon URI:
+postgresql://<role>:<password>@<endpoint-id>-pooler.<region>.aws.neon.tech/<database>?sslmode=require&channel_binding=require
+
+Spring JDBC URL:
+jdbc:postgresql://<endpoint-id>-pooler.<region>.aws.neon.tech/<database>?sslmode=require&channelBinding=require
+```
+
+For a local `.env` file, set these values. Spring Boot imports `.env` from the
+project root when the application starts:
+
+```text
+spring.profiles.active=neon
+NEON_DATABASE_URL=jdbc:postgresql://<endpoint-id>-pooler.<region>.aws.neon.tech/<database>?sslmode=require&channelBinding=require
+NEON_DATABASE_USERNAME=<role>
+NEON_DATABASE_PASSWORD=<password>
+```
+
+For Liquibase migrations, a direct Neon connection is safer than PgBouncer
+transaction pooling. If needed, also set:
+
+```text
+NEON_MIGRATION_DATABASE_URL=jdbc:postgresql://<endpoint-id>.<region>.aws.neon.tech/<database>?sslmode=require&channelBinding=require
+NEON_MIGRATION_DATABASE_USERNAME=<role>
+NEON_MIGRATION_DATABASE_PASSWORD=<password>
+```
+
+Use `.env.example` as the local template, then create an untracked `.env` file
+with real Neon values. If you prefer IDE or deployment environment variables,
+use `SPRING_PROFILES_ACTIVE=neon` instead of `spring.profiles.active=neon`.
+
+## Continuous Integration
+
+The GitHub Actions workflow in `.github/workflows/ci.yml` runs for pull requests
+and pushes to `main`. It currently uses Java 25, Maven Wrapper 3.3.4 with Maven
+3.9.16, Spring Boot 3.5.16, and `postgres:17-alpine`. It:
+
+- Compiles the project and runs all tests with `./mvnw verify`.
+- Starts a PostgreSQL service container.
+- Packages and starts the application with Java 25.
+- Requires the application to report healthy at `/actuator/health`.
+
+To prevent broken code from reaching `main`, configure a GitHub branch ruleset:
+
+1. Open **Settings -> Rules -> Rulesets** in the GitHub repository.
+2. Create a branch ruleset targeting the `main` branch.
+3. Enable **Require a pull request before merging**.
+4. Enable **Require status checks to pass**.
+5. Add the required status check named `Verify build and startup`.
+6. Block force pushes and branch deletion.
+7. Disable bypass permissions for contributors who should follow the rule.
+
+The workflow reports failures on any branch where it runs. The branch ruleset
+is what prevents direct pushes or pull request merges into `main` when the
+required check fails.
 
 ## High-Level Architecture
 
@@ -131,7 +228,7 @@ and QR redemption sessions.
 | Table | Purpose |
 | --- | --- |
 | `users` | Internal users mapped to external auth users |
-| `businesses` | Businesses using LoyalTap |
+| `business` | Businesses using LoyalTap |
 | `business_employees` | Authorization relationship between users and businesses |
 | `memberships` | One loyalty card per user per business, with points and reserved points |
 | `nfc_tags` | Physical NFC tags that start stamp request flow |
@@ -240,11 +337,11 @@ Customer APIs:
 
 ```http
 POST /users/me/init
-GET /businesses
+GET /business
 GET /memberships
 POST /memberships
 GET /memberships/{membershipId}
-GET /businesses/{businessId}/rewards
+GET /business/{businessId}/rewards
 POST /rewards/{rewardId}/reserve
 GET /reward-redemptions/{redemptionId}
 POST /reward-redemptions/{redemptionId}/cancel
@@ -262,7 +359,7 @@ POST /stamp-requests/{stampRequestId}/cancel
 Employee APIs:
 
 ```http
-GET /businesses/{businessId}/pending-stamp-requests
+GET /business/{businessId}/pending-stamp-requests
 POST /stamp-requests/{stampRequestId}/approve
 POST /stamp-requests/{stampRequestId}/reject
 POST /reward-redemptions/scan
@@ -272,11 +369,11 @@ POST /reward-redemptions/{redemptionId}/accept
 Business owner APIs:
 
 ```http
-POST /businesses
-PATCH /businesses/{businessId}
-POST /businesses/{businessId}/employees
-POST /businesses/{businessId}/nfc-tags
-POST /businesses/{businessId}/rewards
+POST /business
+PATCH /business/{businessId}
+POST /business/{businessId}/employees
+POST /business/{businessId}/nfc-tags
+POST /business/{businessId}/rewards
 PATCH /rewards/{rewardId}
 ```
 
@@ -380,3 +477,6 @@ Mobile:
 - [Clerk Authenticated Backend Requests](https://clerk.com/docs/guides/development/making-requests)
 - [Firebase Authentication](https://firebase.google.com/docs/auth)
 - [Supabase Auth](https://supabase.com/docs/guides/auth)
+- [Neon Connect from any application](https://neon.com/docs/connect/connect-from-any-app)
+- [Neon Connection Pooling](https://neon.com/docs/connect/connection-pooling)
+- [PostgreSQL JDBC Connection Parameters](https://jdbc.postgresql.org/documentation/use/)

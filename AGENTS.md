@@ -24,7 +24,7 @@ Wallet pass = display/sync surface
 
 ## Technical Direction
 
-- Use Java 21 and Spring Boot 3 for the backend.
+- Use Java 25 and Spring Boot 3.5.16 for the backend.
 - Use PostgreSQL as the primary database.
 - Use Liquibase for schema creation, validation, and migrations.
 - Use external authentication, preferably Clerk for MVP or Firebase Auth as an
@@ -216,6 +216,199 @@ com.loyaltap
 - Run a scheduled expiry job to release reserved points and stock.
 - Never trust client-provided balances, reserved points, reward stock, redemption
   status, or wallet state.
+
+## Git Workflow
+
+### General Rules
+
+- Treat `main` as the protected integration branch. Do not commit directly to
+  `main`; create a focused topic branch and merge it through a pull request.
+- Agents may inspect Git state and prepare changes, but must not create commits,
+  push branches, rewrite shared history, merge pull requests, or create tags
+  unless the user explicitly requests that action.
+- Before editing, run `git status --short --branch` and preserve unrelated user
+  changes. Never discard, reset, amend, or include changes that are outside the
+  current task.
+- Never commit credentials, access tokens, private keys, local environment
+  files, IDE state, build output, logs, or other generated artifacts unless the
+  repository intentionally tracks them.
+- Do not use destructive history or worktree commands such as
+  `git reset --hard`, `git clean -fd`, or `git checkout -- <path>` without
+  explicit user approval.
+
+### Branch Naming
+
+- Create branches from an up-to-date `main`.
+- Use lowercase kebab-case with a type prefix:
+
+```text
+feat/reward-reservation
+fix/stamp-approval-locking
+refactor/membership-service
+test/reward-redemption-expiry
+docs/local-development
+chore/update-dependencies
+```
+
+- Keep one coherent task per branch. Do not combine unrelated features, fixes,
+  refactors, or dependency upgrades.
+- Use issue identifiers when available, for example
+  `feat/123-reward-reservation`.
+
+### Starting And Synchronizing Work
+
+- Fetch before starting work so remote state can be reviewed without changing
+  the current branch:
+
+```bash
+git fetch origin --prune
+git switch main
+git pull --ff-only origin main
+git switch -c <type>/<short-description>
+```
+
+- Prefer `git fetch` followed by an explicit rebase or fast-forward operation
+  over an unqualified `git pull`.
+- Use `git pull --ff-only` on `main`. If it fails because histories diverged,
+  stop and inspect the history instead of creating an accidental merge commit.
+- To update an unshared topic branch:
+
+```bash
+git fetch origin --prune
+git rebase origin/main
+```
+
+- Rebase only local commits or a branch whose collaborators have agreed to the
+  rewrite. Do not rebase, amend, or otherwise rewrite shared history without
+  coordination.
+- Resolve conflicts by understanding both sides. After resolution, run relevant
+  tests again and inspect the resulting diff before continuing.
+
+### Staging And Grouping Commits
+
+- A commit must represent one logical, independently reviewable change.
+- Keep production code, its tests, and directly required documentation or
+  migration updates together when they form one atomic behavior change.
+- Database changes must keep the Liquibase changeset, persistence model,
+  repository behavior, tests, and affected documentation consistent in the
+  same commit or in an ordered series where every commit remains valid.
+- Separate unrelated formatting, refactoring, dependency upgrades, generated
+  files, and behavior changes into different commits.
+- Avoid partial commits that do not compile or intentionally break tests. Do
+  not leave `WIP`, `fixup!`, or `squash!` commits in a review-ready branch.
+- Stage deliberately with explicit paths or interactive staging:
+
+```bash
+git add <path>...
+git add -p
+git diff --staged
+```
+
+- Review `git status --short` and `git diff --staged` immediately before every
+  commit. Do not use `git add .` or `git commit -a` without first reviewing all
+  affected files.
+
+### Commit Messages
+
+- Follow Conventional Commits:
+
+```text
+<type>(<optional-scope>)!: <imperative summary>
+
+<optional body explaining why>
+
+<optional footers>
+```
+
+- Allowed types:
+  - `feat`: new user-visible or API capability.
+  - `fix`: defect correction.
+  - `refactor`: internal restructuring without behavior change.
+  - `perf`: performance improvement.
+  - `test`: test-only change.
+  - `docs`: documentation-only change.
+  - `build`: build system or dependency change.
+  - `ci`: continuous integration change.
+  - `chore`: maintenance not covered by another type.
+  - `revert`: revert of an earlier commit.
+- Prefer domain scopes such as `auth`, `business`, `membership`, `stamprequest`,
+  `reward`, `redemption`, `wallet`, `db`, `security`, `deps`, or `docs`.
+- Write the subject in imperative mood, lowercase after the colon, without a
+  trailing period, and keep it concise, preferably no more than 72 characters.
+- Describe the reason and important tradeoffs in the body when the subject
+  alone is insufficient. Do not merely repeat the diff.
+- Mark breaking changes with `!` and include a `BREAKING CHANGE:` footer that
+  explains the migration impact.
+- Reference issues in footers when applicable, for example `Closes #123`.
+
+Examples:
+
+```text
+feat(reward): reserve points and limited stock
+fix(stamprequest): lock membership during approval
+refactor(auth): isolate external token verification
+test(redemption): cover expired reservation rollback
+build(deps): add PostgreSQL Testcontainers support
+docs: document local database setup
+```
+
+### Validation Before Push
+
+- Run the smallest relevant test suite first, then the broader suite required
+  by the change.
+- For normal Java changes, run at least:
+
+```bash
+./mvnw test
+```
+
+- For database changes, also validate Liquibase against PostgreSQL using the
+  project's integration-test workflow once available.
+- Before pushing, review:
+
+```bash
+git status --short --branch
+git diff origin/main...HEAD
+git log --oneline origin/main..HEAD
+```
+
+- Do not push known failing code unless the user explicitly requests a
+  work-in-progress branch and the failure is clearly documented.
+
+### Pushing And Pull Requests
+
+- Push a new topic branch and set its upstream explicitly:
+
+```bash
+git push -u origin <branch>
+```
+
+- After the upstream is configured, use `git push` for normal fast-forward
+  updates.
+- Never force-push `main`, release branches, tags, or another contributor's
+  branch.
+- If an explicitly approved rebase requires updating your own topic branch,
+  fetch first and use `git push --force-with-lease`, never `git push --force`.
+- Open a pull request into `main`. Its title should follow the same Conventional
+  Commit format and its description should summarize the purpose, key design
+  decisions, test evidence, migration/configuration impact, and related issue.
+- Keep pull requests focused and reasonably small. Split unrelated changes into
+  separate branches and pull requests.
+- Prefer squash merging for a concise `main` history unless the maintainer asks
+  to preserve the individual commit series. Ensure the final squash commit
+  message follows these commit-message rules.
+- After merge, update local `main` with `git fetch origin --prune` followed by
+  `git pull --ff-only origin main`, then delete the merged local topic branch.
+
+### Git References
+
+- [Git staging and snapshot workflow](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F)
+- [Git contributing workflows](https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project)
+- [Git fetch documentation](https://git-scm.com/docs/git-fetch)
+- [Git pull documentation](https://git-scm.com/docs/git-pull)
+- [Git push documentation](https://git-scm.com/docs/git-push)
+- [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
+- [GitHub pull request documentation](https://docs.github.com/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests)
 
 ## Documentation
 
