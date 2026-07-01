@@ -47,12 +47,8 @@ public class BusinessService {
         business.setPhone(trimToNull(request.phone()));
         business.setEmail(trimToNull(request.email()));
         business.setWebsiteUrl(trimToNull(request.websiteUrl()));
-        business.setAddressLine1(trimToNull(request.addressLine1()));
-        business.setAddressLine2(trimToNull(request.addressLine2()));
+        business.setAddress(trimToNull(request.address()));
         business.setCity(trimToNull(request.city()));
-        business.setState(trimToNull(request.state()));
-        business.setPostalCode(trimToNull(request.postalCode()));
-        business.setCountry(trimToNull(request.country()));
         business.setStatus(BusinessStatus.ACTIVE);
 
         return businessMapper.toResponse(businessRepository.save(business));
@@ -89,12 +85,8 @@ public class BusinessService {
         applyIfPresent(request.phone(), business::setPhone);
         applyIfPresent(request.email(), business::setEmail);
         applyIfPresent(request.websiteUrl(), business::setWebsiteUrl);
-        applyIfPresent(request.addressLine1(), business::setAddressLine1);
-        applyIfPresent(request.addressLine2(), business::setAddressLine2);
+        applyIfPresent(request.address(), business::setAddress);
         applyIfPresent(request.city(), business::setCity);
-        applyIfPresent(request.state(), business::setState);
-        applyIfPresent(request.postalCode(), business::setPostalCode);
-        applyIfPresent(request.country(), business::setCountry);
 
         return businessMapper.toResponse(business);
     }

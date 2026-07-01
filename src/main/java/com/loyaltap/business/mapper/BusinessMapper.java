@@ -16,15 +16,9 @@ public class BusinessMapper {
                 business.getPhone(),
                 business.getEmail(),
                 business.getWebsiteUrl(),
-                business.getAddressLine1(),
-                business.getAddressLine2(),
+                business.getAddress(),
                 business.getCity(),
-                business.getState(),
-                business.getPostalCode(),
-                business.getCountry(),
-                business.getStatus(),
-                business.getCreatedAt(),
-                business.getUpdatedAt()
+                business.getStatus()
         );
     }
 }

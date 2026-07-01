@@ -13,14 +13,8 @@ public record BusinessResponse(
         String phone,
         String email,
         String websiteUrl,
-        String addressLine1,
-        String addressLine2,
+        String address,
         String city,
-        String state,
-        String postalCode,
-        String country,
-        BusinessStatus status,
-        Instant createdAt,
-        Instant updatedAt
+        BusinessStatus status
 ) {
 }
