@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/businesses")
+@RequestMapping("/business")
 public class BusinessController {
 
     private final BusinessService businessService;

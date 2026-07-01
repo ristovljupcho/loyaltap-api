@@ -54,7 +54,7 @@ class BusinessControllerTest {
         CreateBusinessRequest request = createRequest("Cafe Aroma", null);
         when(businessService.createBusiness(any(CreateBusinessRequest.class))).thenReturn(response());
 
-        mockMvc.perform(post("/businesses")
+        mockMvc.perform(post("/business")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -70,7 +70,7 @@ class BusinessControllerTest {
     void createBusinessReturnsBadRequestForInvalidRequest() throws Exception {
         CreateBusinessRequest request = createRequest("", null);
 
-        mockMvc.perform(post("/businesses")
+        mockMvc.perform(post("/business")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -82,7 +82,7 @@ class BusinessControllerTest {
     void listBusinessesReturnsActiveBusinesses() throws Exception {
         when(businessService.listActiveBusinesses()).thenReturn(List.of(response()));
 
-        mockMvc.perform(get("/businesses"))
+        mockMvc.perform(get("/business"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(BUSINESS_ID.toString()))
                 .andExpect(jsonPath("$[0].slug").value("cafe-aroma"));
@@ -93,7 +93,7 @@ class BusinessControllerTest {
         when(businessService.getBusiness(BUSINESS_ID))
                 .thenThrow(new ResourceNotFoundException("Business not found: " + BUSINESS_ID));
 
-        mockMvc.perform(get("/businesses/{businessId}", BUSINESS_ID))
+        mockMvc.perform(get("/business/{businessId}", BUSINESS_ID))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(containsString(BUSINESS_ID.toString())));
     }
@@ -117,7 +117,7 @@ class BusinessControllerTest {
         when(businessService.updateBusiness(eq(BUSINESS_ID), any(UpdateBusinessRequest.class)))
                 .thenThrow(new DuplicateResourceException("Business slug already exists: cafe-aroma"));
 
-        mockMvc.perform(patch("/businesses/{businessId}", BUSINESS_ID)
+        mockMvc.perform(patch("/business/{businessId}", BUSINESS_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
@@ -128,7 +128,7 @@ class BusinessControllerTest {
     void deactivateBusinessReturnsInactiveBusiness() throws Exception {
         when(businessService.deactivateBusiness(BUSINESS_ID)).thenReturn(inactiveResponse());
 
-        mockMvc.perform(post("/businesses/{businessId}/deactivate", BUSINESS_ID))
+        mockMvc.perform(post("/business/{businessId}/deactivate", BUSINESS_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("INACTIVE"));
     }

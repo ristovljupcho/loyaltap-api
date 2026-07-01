@@ -16,7 +16,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 @Entity
-@Table(name = "businesses")
+@Table(name = "business")
 @Getter
 @Setter
 public class Business extends AuditableEntity {

@@ -228,7 +228,7 @@ and QR redemption sessions.
 | Table | Purpose |
 | --- | --- |
 | `users` | Internal users mapped to external auth users |
-| `businesses` | Businesses using LoyalTap |
+| `business` | Businesses using LoyalTap |
 | `business_employees` | Authorization relationship between users and businesses |
 | `memberships` | One loyalty card per user per business, with points and reserved points |
 | `nfc_tags` | Physical NFC tags that start stamp request flow |
@@ -337,11 +337,11 @@ Customer APIs:
 
 ```http
 POST /users/me/init
-GET /businesses
+GET /business
 GET /memberships
 POST /memberships
 GET /memberships/{membershipId}
-GET /businesses/{businessId}/rewards
+GET /business/{businessId}/rewards
 POST /rewards/{rewardId}/reserve
 GET /reward-redemptions/{redemptionId}
 POST /reward-redemptions/{redemptionId}/cancel
@@ -359,7 +359,7 @@ POST /stamp-requests/{stampRequestId}/cancel
 Employee APIs:
 
 ```http
-GET /businesses/{businessId}/pending-stamp-requests
+GET /business/{businessId}/pending-stamp-requests
 POST /stamp-requests/{stampRequestId}/approve
 POST /stamp-requests/{stampRequestId}/reject
 POST /reward-redemptions/scan
@@ -369,11 +369,11 @@ POST /reward-redemptions/{redemptionId}/accept
 Business owner APIs:
 
 ```http
-POST /businesses
-PATCH /businesses/{businessId}
-POST /businesses/{businessId}/employees
-POST /businesses/{businessId}/nfc-tags
-POST /businesses/{businessId}/rewards
+POST /business
+PATCH /business/{businessId}
+POST /business/{businessId}/employees
+POST /business/{businessId}/nfc-tags
+POST /business/{businessId}/rewards
 PATCH /rewards/{rewardId}
 ```
 

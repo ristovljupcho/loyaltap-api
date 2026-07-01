@@ -3,10 +3,10 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
-    <changeSet id="001-create-businesses" author="codex">
-        <createTable tableName="businesses">
+    <changeSet id="001-create-business" author="codex">
+        <createTable tableName="business">
             <column name="id" type="uuid">
-                <constraints primaryKey="true" primaryKeyName="pk_businesses" nullable="false"/>
+                <constraints primaryKey="true" primaryKeyName="pk_business" nullable="false"/>
             </column>
             <column name="name" type="varchar(160)">
                 <constraints nullable="false"/>
@@ -30,10 +30,10 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addUniqueConstraint tableName="businesses" columnNames="slug" constraintName="uk_businesses_slug"/>
-        <createIndex tableName="businesses" indexName="idx_businesses_status">
+        <addUniqueConstraint tableName="business" columnNames="slug" constraintName="uk_business_slug"/>
+        <createIndex tableName="business" indexName="idx_business_status">
             <column name="status"/>
         </createIndex>
-        <sql dbms="postgresql,h2">ALTER TABLE businesses ADD CONSTRAINT chk_businesses_status CHECK (status IN ('ACTIVE', 'INACTIVE'))</sql>
+        <sql dbms="postgresql,h2">ALTER TABLE business ADD CONSTRAINT chk_business_status CHECK (status IN ('ACTIVE', 'INACTIVE'))</sql>
     </changeSet>
 </databaseChangeLog>
