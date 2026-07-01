@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Locale;
 import java.util.UUID;
 
 @Entity
@@ -52,4 +53,10 @@ public class Business extends AuditableEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 32)
     private BusinessStatus status = BusinessStatus.ACTIVE;
+
+    public String createSlug(String name) {
+        return name.toLowerCase(Locale.ROOT)
+                .replaceAll("[^\\p{L}\\p{N}]+", "-")
+                .replaceAll("^-+|-+$", "");
+    }
 }
