@@ -42,7 +42,7 @@ class BusinessServiceTest {
 
     @BeforeEach
     void setUp() {
-        businessService = new BusinessService(businessRepository, new BusinessMapper());
+        businessService = new BusinessServiceImpl(businessRepository, new BusinessMapper());
     }
 
     @Test
