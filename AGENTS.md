@@ -24,7 +24,7 @@ Wallet pass = display/sync surface
 
 ## Technical Direction
 
-- Use Java 21 and Spring Boot 3 for the backend.
+- Use Java 25 and Spring Boot 3.5.16 for the backend.
 - Use PostgreSQL as the primary database.
 - Use Liquibase for schema creation, validation, and migrations.
 - Use external authentication, preferably Clerk for MVP or Firebase Auth as an
