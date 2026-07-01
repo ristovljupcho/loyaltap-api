@@ -2,7 +2,6 @@ package com.loyaltap.business.dto;
 
 import com.loyaltap.business.model.BusinessStatus;
 
-import java.time.Instant;
 import java.util.UUID;
 
 public record BusinessResponse(
