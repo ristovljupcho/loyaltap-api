@@ -41,16 +41,7 @@ public class BusinessServiceImpl implements BusinessService {
         String slug = normalizeRequiredSlug(slugSource);
         ensureSlugAvailable(slug, null);
 
-        Business business = new Business();
-        business.setName(name);
-        business.setSlug(slug);
-        business.setDescription(trimToNull(request.description()));
-        business.setPhone(trimToNull(request.phone()));
-        business.setEmail(trimToNull(request.email()));
-        business.setWebsiteUrl(trimToNull(request.websiteUrl()));
-        business.setAddress(trimToNull(request.address()));
-        business.setCity(trimToNull(request.city()));
-        business.setStatus(BusinessStatus.ACTIVE);
+        Business business = businessMapper.toEntity(request, name, slug);
 
         return businessMapper.toResponse(businessRepository.save(business));
     }
