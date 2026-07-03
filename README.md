@@ -342,6 +342,7 @@ GET /memberships
 POST /memberships
 GET /memberships/{membershipId}
 GET /business/{businessId}/rewards
+GET /rewards/{rewardId}
 POST /rewards/{rewardId}/reserve
 GET /reward-redemptions/{redemptionId}
 POST /reward-redemptions/{redemptionId}/cancel
@@ -375,6 +376,7 @@ POST /business/{businessId}/employees
 POST /business/{businessId}/nfc-tags
 POST /business/{businessId}/rewards
 PATCH /rewards/{rewardId}
+DELETE /rewards/{rewardId}
 ```
 
 ## Wallet Strategy
