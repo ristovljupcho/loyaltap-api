@@ -1,8 +1,7 @@
 package com.loyaltap.business.service;
 
+import com.loyaltap.business.dto.BusinessRequest;
 import com.loyaltap.business.dto.BusinessResponse;
-import com.loyaltap.business.dto.CreateBusinessRequest;
-import com.loyaltap.business.dto.UpdateBusinessRequest;
 import com.loyaltap.business.mapper.BusinessMapper;
 import com.loyaltap.business.model.Business;
 import com.loyaltap.business.model.BusinessStatus;
@@ -12,6 +11,7 @@ import com.loyaltap.common.error.DuplicateResourceException;
 import com.loyaltap.common.error.InvalidRequestException;
 import com.loyaltap.common.error.ResourceNotFoundException;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -19,29 +19,21 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 @Service
 @Validated
+@RequiredArgsConstructor
 public class BusinessServiceImpl implements BusinessService {
 
     private final BusinessRepository businessRepository;
     private final BusinessMapper businessMapper;
 
-    public BusinessServiceImpl(BusinessRepository businessRepository, BusinessMapper businessMapper) {
-        this.businessRepository = businessRepository;
-        this.businessMapper = businessMapper;
-    }
-
     @Override
     @Transactional
-    public BusinessResponse createBusiness(@Valid CreateBusinessRequest request) {
-        String name = requireNonBlank(request.name(), "Business name is required");
-        String slugSource = StringUtils.hasText(request.slug()) ? request.slug() : name;
-        String slug = normalizeRequiredSlug(slugSource);
+    public BusinessResponse createBusiness(@Valid BusinessRequest request) {
+        String slug = normalizeRequiredSlug(request.slug());
         ensureSlugAvailable(slug, null);
-
-        Business business = businessMapper.toEntity(request, name, slug);
+        Business business = businessMapper.toEntity(request, slug);
 
         return businessMapper.toResponse(businessRepository.save(business));
     }
@@ -63,25 +55,13 @@ public class BusinessServiceImpl implements BusinessService {
 
     @Override
     @Transactional
-    public BusinessResponse updateBusiness(UUID businessId, @Valid UpdateBusinessRequest request) {
+    public BusinessResponse updateBusiness(UUID businessId, @Valid BusinessRequest request) {
         Business business = findBusiness(businessId);
-
-        if (request.name() != null) {
-            business.setName(requireNonBlank(request.name(), "Business name cannot be blank"));
+        String slug = normalizeRequiredSlug(request.slug());
+        if (!slug.equals(business.getSlug())) {
+            ensureSlugAvailable(slug, businessId);
         }
-        if (request.slug() != null) {
-            String slug = normalizeRequiredSlug(request.slug());
-            if (!slug.equals(business.getSlug())) {
-                ensureSlugAvailable(slug, business.getId());
-                business.setSlug(slug);
-            }
-        }
-        applyIfPresent(request.description(), business::setDescription);
-        applyIfPresent(request.phone(), business::setPhone);
-        applyIfPresent(request.email(), business::setEmail);
-        applyIfPresent(request.websiteUrl(), business::setWebsiteUrl);
-        applyIfPresent(request.address(), business::setAddress);
-        applyIfPresent(request.city(), business::setCity);
+        businessMapper.updateEntity(business, request, slug);
 
         return businessMapper.toResponse(business);
     }
@@ -117,25 +97,5 @@ public class BusinessServiceImpl implements BusinessService {
             throw new InvalidRequestException("Business slug must contain at least one letter or number");
         }
         return slug;
-    }
-
-    private String requireNonBlank(String value, String message) {
-        if (!StringUtils.hasText(value)) {
-            throw new InvalidRequestException(message);
-        }
-        return value.trim();
-    }
-
-    private void applyIfPresent(String value, Consumer<String> setter) {
-        if (value != null) {
-            setter.accept(trimToNull(value));
-        }
-    }
-
-    private String trimToNull(String value) {
-        if (!StringUtils.hasText(value)) {
-            return null;
-        }
-        return value.trim();
     }
 }

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="002-create-rewards" author="codex">
+        <createTable tableName="rewards">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" primaryKeyName="pk_rewards" nullable="false"/>
+            </column>
+            <column name="business_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_user_id" type="varchar(150)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(150)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="text"/>
+            <column name="required_points" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="stock_quantity" type="integer"/>
+            <column name="stock_reserved" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="stock_redeemed" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(32)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="rewards"
+                baseColumnNames="business_id"
+                referencedTableName="business"
+                referencedColumnNames="id"
+                constraintName="fk_rewards_business"/>
+        <createIndex tableName="rewards" indexName="idx_rewards_business_status">
+            <column name="business_id"/>
+            <column name="status"/>
+        </createIndex>
+        <sql dbms="postgresql,h2">ALTER TABLE rewards ADD CONSTRAINT chk_rewards_status CHECK (status IN ('ACTIVE', 'DISABLED', 'DELETED'))</sql>
+        <sql dbms="postgresql,h2">ALTER TABLE rewards ADD CONSTRAINT chk_rewards_points_stock CHECK (required_points &gt; 0 AND stock_reserved &gt;= 0 AND stock_redeemed &gt;= 0 AND (stock_quantity IS NULL OR stock_quantity &gt;= stock_reserved + stock_redeemed))</sql>
+    </changeSet>
+</databaseChangeLog>
