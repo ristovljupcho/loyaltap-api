@@ -203,13 +203,12 @@ Use external authentication to avoid building password management, email
 verification, password reset, and session handling from scratch. Clerk is a
 strong MVP choice; Firebase Auth is a good mobile-first alternative.
 
-Store the external auth ID in the `users` table and use an internal UUID as the
-system user ID.
+Until external authentication is integrated, callers supply the user's string
+ID. The verified external provider subject will replace that input source later.
 
 ```text
-users.id = internal UUID
-users.auth_provider = CLERK / FIREBASE / SUPABASE
-users.auth_provider_user_id = external provider user ID
+users.id = caller-supplied string (future external provider subject)
+users.status = ACTIVE / DISABLED / DELETED
 ```
 
 Roles:
@@ -227,7 +226,7 @@ and QR redemption sessions.
 
 | Table | Purpose |
 | --- | --- |
-| `users` | Internal users mapped to external auth users |
+| `users` | Users identified by a string ID, with external auth integration planned |
 | `business` | Businesses using LoyalTap |
 | `business_employees` | Authorization relationship between users and businesses |
 | `memberships` | One loyalty card per user per business, with points and reserved points |
