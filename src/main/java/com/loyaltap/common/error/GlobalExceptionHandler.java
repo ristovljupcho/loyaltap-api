@@ -2,6 +2,7 @@ package com.loyaltap.common.error;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -29,8 +30,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<ApiError> handleInvalidRequest(InvalidRequestException exception,
-                                                         HttpServletRequest request) {
+                                                          HttpServletRequest request) {
         return error(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleDataIntegrityViolation(HttpServletRequest request) {
+        return error(HttpStatus.CONFLICT, "Resource conflicts with existing data", request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

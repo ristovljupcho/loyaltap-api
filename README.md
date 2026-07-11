@@ -371,7 +371,7 @@ Business owner APIs:
 
 ```http
 POST /business
-PATCH /business/{businessId}
+PUT /business/{businessId}
 POST /business/{businessId}/employees
 POST /business/{businessId}/nfc-tags
 POST /business/{businessId}/rewards
