@@ -164,6 +164,11 @@ com.loyaltap
   model: entities, repositories, projections, DTOs, validation, and tests as
   applicable.
 - Do not rely on Hibernate/JPA auto-DDL to create or alter schema.
+- Keep one physical changelog file per table. Update that table's existing
+  changelog file instead of creating a new file for each schema change.
+- Before a table changeset has been shared or applied, modify its original
+  table definition directly. After it has been shared or applied, append a new
+  changeset to the same table changelog file.
 - Keep changelog files append-only after they have been shared or applied. Add a
   new changeset for follow-up changes instead of editing old applied changesets.
 - Include constraints and indexes in Liquibase when they express business

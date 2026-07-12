@@ -4,6 +4,6 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <include file="changes/001-create-business.xml" relativeToChangelogFile="true"/>
-    <include file="changes/002-create-rewards.xml" relativeToChangelogFile="true"/>
     <include file="changes/003-create-users.xml" relativeToChangelogFile="true"/>
+    <include file="changes/002-create-rewards.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

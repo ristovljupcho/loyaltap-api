@@ -12,7 +12,11 @@
                 <constraints nullable="false"/>
             </column>
             <column name="created_by_user_id" type="varchar(150)">
-                <constraints nullable="false"/>
+                <constraints
+                        nullable="false"
+                        referencedTableName="users"
+                        referencedColumnNames="id"
+                        foreignKeyName="fk_rewards_user"/>
             </column>
             <column name="name" type="varchar(150)">
                 <constraints nullable="false"/>

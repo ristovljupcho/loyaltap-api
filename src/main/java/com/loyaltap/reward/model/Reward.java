@@ -2,6 +2,7 @@ package com.loyaltap.reward.model;
 
 import com.loyaltap.business.model.Business;
 import com.loyaltap.common.auditing.AuditableEntity;
+import com.loyaltap.user.model.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -34,9 +35,9 @@ public class Reward extends AuditableEntity {
     @JoinColumn(name = "business_id", nullable = false, foreignKey = @ForeignKey(name = "fk_rewards_business"))
     private Business business;
 
-    // TODO: Replace this temporary String ID with a User relationship when the User entity is implemented.
-    @Column(name = "created_by_user_id", nullable = false, length = 150)
-    private String userId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "created_by_user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_rewards_user"))
+    private User user;
 
     @Column(name = "name", nullable = false, length = 150)
     private String name;
