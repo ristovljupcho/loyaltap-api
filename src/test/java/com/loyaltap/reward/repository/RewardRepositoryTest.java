@@ -1,13 +1,15 @@
-package com.loyaltap.user.repository;
+package com.loyaltap.reward.repository;
 
+import com.loyaltap.business.model.Business;
+import com.loyaltap.business.repository.BusinessRepository;
+import com.loyaltap.reward.model.Reward;
 import com.loyaltap.user.model.User;
-import com.loyaltap.user.model.UserStatus;
+import com.loyaltap.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:loyaltap-repository-test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1",
@@ -21,21 +23,36 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
         "spring.liquibase.change-log=classpath:/db/changelog/db.changelog-master.xml",
         "spring.jpa.hibernate.ddl-auto=none"
 })
-class UserRepositoryTest {
+class RewardRepositoryTest {
+
+    @Autowired
+    private RewardRepository rewardRepository;
+
+    @Autowired
+    private BusinessRepository businessRepository;
 
     @Autowired
     private UserRepository userRepository;
 
     @Test
-    void persistsStringIdStatusAndAuditTimestamps() {
+    void persistsUserRelationship() {
+        Business business = new Business();
+        business.setName("Loyal Coffee");
+        business.setSlug("loyal-coffee");
+        business = businessRepository.save(business);
+
         User user = new User();
-        user.setId("auth-user-1");
+        user.setId("user-1");
+        user = userRepository.save(user);
 
-        User savedUser = userRepository.saveAndFlush(user);
+        Reward reward = new Reward();
+        reward.setBusiness(business);
+        reward.setUser(user);
+        reward.setName("Free coffee");
+        reward.setRequiredPoints(10);
 
-        assertEquals("auth-user-1", savedUser.getId());
-        assertEquals(UserStatus.ACTIVE, savedUser.getStatus());
-        assertNotNull(savedUser.getCreatedAt());
-        assertNotNull(savedUser.getUpdatedAt());
+        Reward savedReward = rewardRepository.saveAndFlush(reward);
+
+        assertEquals(user.getId(), savedReward.getUser().getId());
     }
 }

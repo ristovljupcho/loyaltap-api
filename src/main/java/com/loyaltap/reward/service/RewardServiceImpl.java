@@ -12,7 +12,11 @@ import com.loyaltap.reward.mapper.RewardMapper;
 import com.loyaltap.reward.model.Reward;
 import com.loyaltap.reward.model.RewardStatus;
 import com.loyaltap.reward.repository.RewardRepository;
+import com.loyaltap.user.model.User;
+import com.loyaltap.user.model.UserStatus;
+import com.loyaltap.user.repository.UserRepository;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -23,30 +27,22 @@ import java.util.UUID;
 
 @Service
 @Validated
+@RequiredArgsConstructor
 public class RewardServiceImpl implements RewardService {
 
     private final RewardRepository rewardRepository;
     private final BusinessRepository businessRepository;
+    private final UserRepository userRepository;
     private final RewardMapper rewardMapper;
-
-    public RewardServiceImpl(
-            RewardRepository rewardRepository,
-            BusinessRepository businessRepository,
-            RewardMapper rewardMapper
-    ) {
-        this.rewardRepository = rewardRepository;
-        this.businessRepository = businessRepository;
-        this.rewardMapper = rewardMapper;
-    }
 
     @Override
     @Transactional
     public RewardResponse createReward(UUID businessId, @Valid CreateRewardRequest request) {
         Business business = findActiveBusiness(businessId);
-        String userId = requireNonBlank(request.userId(), "User ID is required");
+        User user = findActiveUser(request.userId());
         String name = requireNonBlank(request.name(), "Reward name is required");
 
-        Reward reward = rewardMapper.toEntity(request, business, userId, name);
+        Reward reward = rewardMapper.toEntity(request, business, user, name);
         return rewardMapper.toResponse(rewardRepository.save(reward));
     }
 
@@ -105,6 +101,15 @@ public class RewardServiceImpl implements RewardService {
             throw new InvalidRequestException("Business is not active: " + businessId);
         }
         return business;
+    }
+
+    private User findActiveUser(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new InvalidRequestException("User is not active: " + userId);
+        }
+        return user;
     }
 
     private Reward findReward(UUID rewardId) {

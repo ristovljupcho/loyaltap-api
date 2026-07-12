@@ -6,15 +6,16 @@ import com.loyaltap.reward.dto.RewardResponse;
 import com.loyaltap.reward.model.Reward;
 import com.loyaltap.reward.model.RewardStatus;
 import com.loyaltap.reward.utils.RewardStockUtils;
+import com.loyaltap.user.model.User;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RewardMapper {
 
-    public Reward toEntity(CreateRewardRequest request, Business business, String userId, String name) {
+    public Reward toEntity(CreateRewardRequest request, Business business, User user, String name) {
         Reward reward = new Reward();
         reward.setBusiness(business);
-        reward.setUserId(userId);
+        reward.setUser(user);
         reward.setName(name);
         reward.setDescription(trimToNull(request.description()));
         reward.setRequiredPoints(request.requiredPoints());
@@ -27,7 +28,7 @@ public class RewardMapper {
         return new RewardResponse(
                 reward.getId(),
                 reward.getBusiness().getId(),
-                reward.getUserId(),
+                reward.getUser().getId(),
                 reward.getName(),
                 reward.getDescription(),
                 reward.getRequiredPoints(),
