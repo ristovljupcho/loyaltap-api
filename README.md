@@ -249,6 +249,10 @@ For limited reward:
 available_stock = rewards.stock_quantity - rewards.stock_reserved - rewards.stock_redeemed
 ```
 
+Memberships are created with `ACTIVE` status and zero balances/counters. Clients
+can create a membership and read its state, but only stamp and redemption
+workflows may change points or reward counters.
+
 Database diagram:
 
 - [View the LoyalTap database diagram on dbdiagram.io](https://dbdiagram.io/d/LoyalTap-6929b515d6676488bacfd3b3)
@@ -337,7 +341,7 @@ Customer APIs:
 ```http
 POST /users/me/init
 GET /business
-GET /memberships
+GET /memberships?userId={userId}
 POST /memberships
 GET /memberships/{membershipId}
 GET /business/{businessId}/rewards
