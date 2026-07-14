@@ -9,4 +9,5 @@
     <include file="changes/004-create-employee.xml" relativeToChangelogFile="true"/>
     <include file="changes/005-create-memberships.xml" relativeToChangelogFile="true"/>
     <include file="changes/006-create-nfc-tags.xml" relativeToChangelogFile="true"/>
+    <include file="changes/007-create-stamp-requests.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>
