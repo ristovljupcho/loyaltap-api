@@ -228,7 +228,7 @@ and QR redemption sessions.
 | --- | --- |
 | `users` | Users identified by a string ID, with external auth integration planned |
 | `business` | Businesses using LoyalTap |
-| `business_employees` | Authorization relationship between users and businesses |
+| `employee` | Authorization relationship between users and businesses |
 | `memberships` | One loyalty card per user per business, with points and reserved points |
 | `nfc_tags` | Physical NFC tags that start stamp request flow |
 | `stamp_requests` | Pending employee approval before points are added |
@@ -372,6 +372,10 @@ Business owner APIs:
 POST /business
 PUT /business/{businessId}
 POST /business/{businessId}/employees
+GET /business/{businessId}/employees
+GET /business/{businessId}/employees/{employeeId}
+PUT /business/{businessId}/employees/{employeeId}
+DELETE /business/{businessId}/employees/{employeeId}
 POST /business/{businessId}/nfc-tags
 POST /business/{businessId}/rewards
 PATCH /rewards/{rewardId}
