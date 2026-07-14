@@ -381,6 +381,10 @@ GET /business/{businessId}/employees/{employeeId}
 PUT /business/{businessId}/employees/{employeeId}
 DELETE /business/{businessId}/employees/{employeeId}
 POST /business/{businessId}/nfc-tags
+GET /business/{businessId}/nfc-tags
+GET /business/{businessId}/nfc-tags/{tagId}
+PUT /business/{businessId}/nfc-tags/{tagId}
+DELETE /business/{businessId}/nfc-tags/{tagId}
 POST /business/{businessId}/rewards
 PATCH /rewards/{rewardId}
 DELETE /rewards/{rewardId}
