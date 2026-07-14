@@ -275,6 +275,11 @@ The `stamp_requests` table prevents self-stamping. A customer cannot farm points
 by repeatedly tapping a public NFC tag because points are not added until an
 employee approves the request.
 
+Stamp requests expire after five minutes. Until external authentication is
+integrated, customer actions require `userId` and employee actions require
+`employeeId` in their request DTOs. Idempotency keys replay the original create
+request and reject conflicting reuse.
+
 ## Reward Reservation And QR Redemption Flow
 
 This is the preferred reward flow. The user reserves a reward first, points are
