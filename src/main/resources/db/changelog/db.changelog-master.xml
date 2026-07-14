@@ -7,4 +7,5 @@
     <include file="changes/003-create-users.xml" relativeToChangelogFile="true"/>
     <include file="changes/002-create-rewards.xml" relativeToChangelogFile="true"/>
     <include file="changes/004-create-employee.xml" relativeToChangelogFile="true"/>
+    <include file="changes/005-create-memberships.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

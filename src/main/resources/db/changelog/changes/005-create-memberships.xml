@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="005-create-memberships" author="codex">
+        <createTable tableName="memberships">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" primaryKeyName="pk_memberships" nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(150)">
+                <constraints nullable="false" foreignKeyName="fk_memberships_user"
+                             referencedTableName="users" referencedColumnNames="id"/>
+            </column>
+            <column name="business_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_memberships_business"
+                             referencedTableName="business" referencedColumnNames="id"/>
+            </column>
+            <column name="points_balance" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reserved_points" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_points_earned" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_points_spent" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_rewards_redeemed" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(32)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="memberships" columnNames="user_id,business_id"
+                             constraintName="uk_memberships_user_business"/>
+        <createIndex tableName="memberships" indexName="idx_memberships_user_status">
+            <column name="user_id"/>
+            <column name="status"/>
+        </createIndex>
+        <sql dbms="postgresql,h2">ALTER TABLE memberships ADD CONSTRAINT chk_memberships_status CHECK (status IN ('ACTIVE', 'DISABLED', 'BLOCKED'))</sql>
+        <sql dbms="postgresql,h2">ALTER TABLE memberships ADD CONSTRAINT chk_memberships_balances CHECK (points_balance &gt;= 0 AND reserved_points &gt;= 0 AND reserved_points &lt;= points_balance)</sql>
+        <sql dbms="postgresql,h2">ALTER TABLE memberships ADD CONSTRAINT chk_memberships_counters CHECK (total_points_earned &gt;= 0 AND total_points_spent &gt;= 0 AND total_rewards_redeemed &gt;= 0)</sql>
+    </changeSet>
+</databaseChangeLog>
