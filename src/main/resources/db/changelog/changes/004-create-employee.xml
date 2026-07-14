@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="004-create-employee" author="codex">
+        <createTable tableName="employee">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" primaryKeyName="pk_employee" nullable="false"/>
+            </column>
+            <column name="business_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_employee_business"
+                             referencedTableName="business" referencedColumnNames="id"/>
+            </column>
+            <column name="user_id" type="varchar(150)">
+                <constraints nullable="false" foreignKeyName="fk_employee_user"
+                             referencedTableName="users" referencedColumnNames="id"/>
+            </column>
+            <column name="role" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(32)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="employee" columnNames="business_id,user_id"
+                             constraintName="uk_employee_business_user"/>
+        <createIndex tableName="employee" indexName="idx_employee_business_status">
+            <column name="business_id"/>
+            <column name="status"/>
+        </createIndex>
+        <sql dbms="postgresql,h2">ALTER TABLE employee ADD CONSTRAINT chk_employee_role CHECK (role IN ('OWNER', 'MANAGER', 'EMPLOYEE'))</sql>
+        <sql dbms="postgresql,h2">ALTER TABLE employee ADD CONSTRAINT chk_employee_status CHECK (status IN ('ACTIVE', 'DISABLED', 'REMOVED'))</sql>
+    </changeSet>
+</databaseChangeLog>
